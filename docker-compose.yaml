@@ -1,0 +1,24 @@
+services:
+  nats:
+    image: nats:2.12-alpine
+    command: ["--jetstream"]
+    ports: ["4222:4222", "8222:8222"]
+    volumes: [natsdata:/data]
+    healthcheck:
+      test: ["CMD-SHELL", "echo 'PING' | nc localhost 4222 | grep -q PONG"]
+      interval: 2s
+      timeout: 5s
+      retries: 10
+
+  nats-provisioner:
+    image: ghcr.io/datarocks-ag/nats-provisioner:latest
+    depends_on:
+      nats: { condition: service_healthy }
+    environment:
+      NATS_URL: nats://nats:4222
+      NATS_CONFIG_PATH: /config.yaml
+    volumes:
+      - ./config.example.yaml:/config.yaml:ro
+
+volumes:
+  natsdata:
