@@ -1,3 +1,9 @@
+# Strategy: "update" (default) creates or updates streams.
+#           "create" only creates if missing, skips existing.
+# Set globally or per stream (stream strategy overrides global).
+# Note: consumers always use CreateOrUpdateConsumer (atomic, idempotent).
+# strategy: "update"
+
 streams:
   - name: "ORDERS"
     description: "Order events stream"

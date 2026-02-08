@@ -39,10 +39,12 @@ func (p *Provisioner) Run(ctx context.Context) error {
 	slog.Info("Starting provisioning")
 
 	for _, stream := range p.cfg.Streams {
-		if err := p.ensureStream(ctx, stream); err != nil {
+		strategy := config.EffectiveStrategy(stream.Strategy, p.cfg.Strategy)
+		if err := p.ensureStream(ctx, stream, strategy); err != nil {
 			return fmt.Errorf("provisioning stream %q: %w", stream.Name, err)
 		}
 
+		// Consumers always use CreateOrUpdateConsumer (atomic, idempotent)
 		for _, consumer := range stream.Consumers {
 			if err := p.ensureConsumer(ctx, stream.Name, consumer); err != nil {
 				return fmt.Errorf("provisioning consumer %q on stream %q: %w", consumer.Name, stream.Name, err)

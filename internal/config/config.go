@@ -11,9 +11,28 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// validStrategies is the allowlist of update strategy values.
+var validStrategies = map[string]bool{
+	"":       true, // inherits from parent/default
+	"create": true, // only create if missing, skip if exists
+	"update": true, // create or update (default behavior)
+}
+
+// EffectiveStrategy returns the first non-empty strategy from the given list,
+// defaulting to "update" if all are empty.
+func EffectiveStrategy(strategies ...string) string {
+	for _, s := range strategies {
+		if s != "" {
+			return s
+		}
+	}
+	return "update"
+}
+
 // Config is the top-level YAML configuration.
 type Config struct {
-	Streams []Stream `yaml:"streams"`
+	Strategy string   `yaml:"strategy"`
+	Streams  []Stream `yaml:"streams"`
 }
 
 // Stream defines a NATS JetStream stream to provision.
@@ -34,6 +53,7 @@ type Stream struct {
 	DenyDelete      *bool      `yaml:"deny_delete"`
 	DenyPurge       *bool      `yaml:"deny_purge"`
 	Consumers       []Consumer `yaml:"consumers"`
+	Strategy        string     `yaml:"strategy"`
 }
 
 // Consumer defines a NATS JetStream consumer to provision.
@@ -190,10 +210,25 @@ func ParseDuration(s string) (time.Duration, error) {
 	return time.ParseDuration(s)
 }
 
+// validateStrategy returns an error if the strategy value is invalid.
+func validateStrategy(path, value string) error {
+	if !validStrategies[value] {
+		return fmt.Errorf("%s: invalid strategy %q (must be \"create\" or \"update\")", path, value)
+	}
+	return nil
+}
+
 func validate(cfg *Config) error {
+	if err := validateStrategy("strategy", cfg.Strategy); err != nil {
+		return err
+	}
+
 	streamNames := make(map[string]bool)
 
 	for i, s := range cfg.Streams {
+		if err := validateStrategy(fmt.Sprintf("streams[%d].strategy", i), s.Strategy); err != nil {
+			return err
+		}
 		prefix := fmt.Sprintf("streams[%d]", i)
 
 		if s.Name == "" {

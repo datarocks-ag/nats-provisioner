@@ -24,7 +24,6 @@ func setupNATS(t *testing.T) (jetstream.JetStream, *nats.Conn, func()) {
 
 	natsContainer, err := natsmodule.Run(ctx,
 		"nats:2.12-alpine",
-		natsmodule.WithArgument("--jetstream", ""),
 	)
 	if err != nil {
 		t.Fatalf("failed to start nats container: %v", err)

@@ -391,6 +391,69 @@ func TestValidationNullByteInStreamName(t *testing.T) {
 	}
 }
 
+func TestValidationNullByteInSubject(t *testing.T) {
+	yaml := "streams:\n  - name: \"TEST\"\n    subjects: [\"test\\x00evil\"]\n"
+	path := writeTempConfig(t, yaml)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected validation error for null byte in subject")
+	}
+}
+
+func TestValidationNullByteInConsumerName(t *testing.T) {
+	yaml := "streams:\n  - name: \"TEST\"\n    subjects: [\"test\"]\n    consumers:\n      - name: \"bad\\x00name\"\n"
+	path := writeTempConfig(t, yaml)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected validation error for null byte in consumer name")
+	}
+}
+
+func TestValidationNullByteInConsumerDescription(t *testing.T) {
+	yaml := "streams:\n  - name: \"TEST\"\n    subjects: [\"test\"]\n    consumers:\n      - name: \"c1\"\n        description: \"bad\\x00desc\"\n"
+	path := writeTempConfig(t, yaml)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected validation error for null byte in consumer description")
+	}
+}
+
+func TestValidationNullByteInFilterSubject(t *testing.T) {
+	yaml := "streams:\n  - name: \"TEST\"\n    subjects: [\"test\"]\n    consumers:\n      - name: \"c1\"\n        filter_subject: \"bad\\x00subj\"\n"
+	path := writeTempConfig(t, yaml)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected validation error for null byte in filter_subject")
+	}
+}
+
+func TestValidationNullByteInDeliverSubject(t *testing.T) {
+	yaml := "streams:\n  - name: \"TEST\"\n    subjects: [\"test\"]\n    consumers:\n      - name: \"c1\"\n        deliver_subject: \"bad\\x00subj\"\n"
+	path := writeTempConfig(t, yaml)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected validation error for null byte in deliver_subject")
+	}
+}
+
+func TestValidationNullByteInDeliverGroup(t *testing.T) {
+	yaml := "streams:\n  - name: \"TEST\"\n    subjects: [\"test\"]\n    consumers:\n      - name: \"c1\"\n        deliver_group: \"bad\\x00group\"\n"
+	path := writeTempConfig(t, yaml)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected validation error for null byte in deliver_group")
+	}
+}
+
+func TestValidationNullByteInStreamDescription(t *testing.T) {
+	yaml := "streams:\n  - name: \"TEST\"\n    subjects: [\"test\"]\n    description: \"bad\\x00desc\"\n"
+	path := writeTempConfig(t, yaml)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected validation error for null byte in stream description")
+	}
+}
+
 func TestParseDuration(t *testing.T) {
 	tests := []struct {
 		input string
@@ -471,6 +534,73 @@ streams:
 	_, err := Load(path)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestValidationInvalidGlobalStrategy(t *testing.T) {
+	yaml := `
+strategy: "invalid"
+streams:
+  - name: "TEST"
+    subjects: ["test"]
+`
+	path := writeTempConfig(t, yaml)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected validation error for invalid global strategy")
+	}
+}
+
+func TestValidationInvalidStreamStrategy(t *testing.T) {
+	yaml := `
+streams:
+  - name: "TEST"
+    subjects: ["test"]
+    strategy: "invalid"
+`
+	path := writeTempConfig(t, yaml)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected validation error for invalid stream strategy")
+	}
+}
+
+func TestValidStrategies(t *testing.T) {
+	for _, strategy := range []string{"create", "update"} {
+		t.Run(strategy, func(t *testing.T) {
+			yaml := `
+strategy: "` + strategy + `"
+streams:
+  - name: "TEST"
+    subjects: ["test"]
+    strategy: "` + strategy + `"
+`
+			path := writeTempConfig(t, yaml)
+			_, err := Load(path)
+			if err != nil {
+				t.Fatalf("unexpected error for strategy %q: %v", strategy, err)
+			}
+		})
+	}
+}
+
+func TestEffectiveStrategy(t *testing.T) {
+	tests := []struct {
+		name       string
+		strategies []string
+		want       string
+	}{
+		{"all empty defaults to update", []string{"", ""}, "update"},
+		{"first wins", []string{"create", "update"}, "create"},
+		{"fallback to second", []string{"", "create"}, "create"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := EffectiveStrategy(tt.strategies...)
+			if got != tt.want {
+				t.Errorf("EffectiveStrategy(%v) = %q, want %q", tt.strategies, got, tt.want)
+			}
+		})
 	}
 }
 

@@ -10,7 +10,7 @@ import (
 	"nats-provisioner/internal/config"
 )
 
-func (p *Provisioner) ensureStream(ctx context.Context, stream config.Stream) error {
+func (p *Provisioner) ensureStream(ctx context.Context, stream config.Stream, strategy string) error {
 	cfg, err := buildStreamConfig(stream)
 	if err != nil {
 		return err
@@ -27,6 +27,11 @@ func (p *Provisioner) ensureStream(ctx context.Context, stream config.Stream) er
 		return err
 	}
 
+	if strategy == "create" {
+		slog.Info("Skipping existing stream (strategy=create)", "stream", stream.Name)
+		return nil
+	}
+
 	// Stream exists — check immutable fields and log warnings
 	info := existing.CachedInfo()
 	if info.Config.Storage != cfg.Storage {
@@ -41,6 +46,20 @@ func (p *Provisioner) ensureStream(ctx context.Context, stream config.Stream) er
 			"stream", stream.Name,
 			"current", info.Config.Retention,
 			"desired", cfg.Retention,
+		)
+	}
+	if info.Config.DenyDelete != cfg.DenyDelete {
+		slog.Warn("Stream deny_delete mismatch (immutable, cannot be changed)",
+			"stream", stream.Name,
+			"current", info.Config.DenyDelete,
+			"desired", cfg.DenyDelete,
+		)
+	}
+	if info.Config.DenyPurge != cfg.DenyPurge {
+		slog.Warn("Stream deny_purge mismatch (immutable, cannot be changed)",
+			"stream", stream.Name,
+			"current", info.Config.DenyPurge,
+			"desired", cfg.DenyPurge,
 		)
 	}
 
