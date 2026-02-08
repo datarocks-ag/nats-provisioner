@@ -1,0 +1,33 @@
+streams:
+  - name: "ORDERS"
+    description: "Order events stream"
+    subjects: ["orders.>"]
+    retention: "limits"
+    storage: "file"
+    max_msgs: -1
+    max_bytes: 1073741824
+    max_age: "7d"
+    max_msg_size: -1
+    num_replicas: 1
+    discard: "old"
+    duplicate_window: "2m"
+    deny_delete: false
+    deny_purge: false
+    allow_rollup: false
+
+    consumers:
+      - name: "order-processor"
+        description: "Processes new orders"
+        filter_subject: "orders.created"
+        ack_policy: "explicit"
+        ack_wait: "30s"
+        max_deliver: 5
+        deliver_policy: "all"
+        replay_policy: "instant"
+        max_ack_pending: 1000
+        inactive_threshold: "5m"
+
+      - name: "order-logger"
+        description: "Logs all order events"
+        ack_policy: "none"
+        deliver_policy: "all"
