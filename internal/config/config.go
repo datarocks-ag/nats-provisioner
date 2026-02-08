@@ -94,8 +94,10 @@ func expandEnvVars(s string) string {
 
 // expandConfig walks the config and expands env vars in string fields.
 func expandConfig(cfg *Config) {
+	cfg.Strategy = expandEnvVars(cfg.Strategy)
 	for i := range cfg.Streams {
 		s := &cfg.Streams[i]
+		s.Strategy = expandEnvVars(s.Strategy)
 		s.Name = expandEnvVars(s.Name)
 		s.Description = expandEnvVars(s.Description)
 		s.Retention = expandEnvVars(s.Retention)
@@ -285,13 +287,21 @@ func validate(cfg *Config) error {
 		}
 
 		if s.MaxAge != "" {
-			if _, err := ParseDuration(s.MaxAge); err != nil {
+			d, err := ParseDuration(s.MaxAge)
+			if err != nil {
 				return fmt.Errorf("%s.max_age: invalid duration %q: %w", prefix, s.MaxAge, err)
+			}
+			if d < 0 {
+				return fmt.Errorf("%s.max_age: negative duration %q is not allowed", prefix, s.MaxAge)
 			}
 		}
 		if s.DuplicateWindow != "" {
-			if _, err := ParseDuration(s.DuplicateWindow); err != nil {
+			d, err := ParseDuration(s.DuplicateWindow)
+			if err != nil {
 				return fmt.Errorf("%s.duplicate_window: invalid duration %q: %w", prefix, s.DuplicateWindow, err)
+			}
+			if d < 0 {
+				return fmt.Errorf("%s.duplicate_window: negative duration %q is not allowed", prefix, s.DuplicateWindow)
 			}
 		}
 
@@ -354,21 +364,34 @@ func validateConsumers(streamPrefix string, consumers []Consumer) error {
 		}
 
 		if c.AckWait != "" {
-			if _, err := ParseDuration(c.AckWait); err != nil {
+			d, err := ParseDuration(c.AckWait)
+			if err != nil {
 				return fmt.Errorf("%s.ack_wait: invalid duration %q: %w", prefix, c.AckWait, err)
+			}
+			if d < 0 {
+				return fmt.Errorf("%s.ack_wait: negative duration %q is not allowed", prefix, c.AckWait)
 			}
 		}
 		if c.InactiveThreshold != "" {
-			if _, err := ParseDuration(c.InactiveThreshold); err != nil {
+			d, err := ParseDuration(c.InactiveThreshold)
+			if err != nil {
 				return fmt.Errorf("%s.inactive_threshold: invalid duration %q: %w", prefix, c.InactiveThreshold, err)
+			}
+			if d < 0 {
+				return fmt.Errorf("%s.inactive_threshold: negative duration %q is not allowed", prefix, c.InactiveThreshold)
 			}
 		}
 
 		if c.DeliverPolicy == "by_start_sequence" && c.OptStartSeq == nil {
 			return fmt.Errorf("%s: deliver_policy 'by_start_sequence' requires opt_start_seq", prefix)
 		}
-		if c.DeliverPolicy == "by_start_time" && c.OptStartTime == "" {
-			return fmt.Errorf("%s: deliver_policy 'by_start_time' requires opt_start_time", prefix)
+		if c.DeliverPolicy == "by_start_time" {
+			if c.OptStartTime == "" {
+				return fmt.Errorf("%s: deliver_policy 'by_start_time' requires opt_start_time", prefix)
+			}
+			if _, err := time.Parse(time.RFC3339, c.OptStartTime); err != nil {
+				return fmt.Errorf("%s.opt_start_time: invalid RFC3339 format %q: %w", prefix, c.OptStartTime, err)
+			}
 		}
 	}
 

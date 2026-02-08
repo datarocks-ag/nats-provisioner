@@ -74,6 +74,8 @@ func buildStreamConfig(s config.Stream) (jetstream.StreamConfig, error) {
 		cfg.Retention = jetstream.InterestPolicy
 	case "workqueue":
 		cfg.Retention = jetstream.WorkQueuePolicy
+	default:
+		return cfg, fmt.Errorf("unknown retention policy %q", s.Retention)
 	}
 
 	switch s.Storage {
@@ -81,6 +83,8 @@ func buildStreamConfig(s config.Stream) (jetstream.StreamConfig, error) {
 		cfg.Storage = jetstream.FileStorage
 	case "memory":
 		cfg.Storage = jetstream.MemoryStorage
+	default:
+		return cfg, fmt.Errorf("unknown storage type %q", s.Storage)
 	}
 
 	switch s.Discard {
@@ -88,6 +92,8 @@ func buildStreamConfig(s config.Stream) (jetstream.StreamConfig, error) {
 		cfg.Discard = jetstream.DiscardOld
 	case "new":
 		cfg.Discard = jetstream.DiscardNew
+	default:
+		return cfg, fmt.Errorf("unknown discard policy %q", s.Discard)
 	}
 
 	if s.MaxMsgs != nil {
@@ -144,6 +150,12 @@ func buildConsumerConfig(c config.Consumer) (jetstream.ConsumerConfig, error) {
 	if c.FilterSubject != "" {
 		cfg.FilterSubject = c.FilterSubject
 	}
+	if c.DeliverSubject != "" {
+		return cfg, fmt.Errorf("deliver_subject is not supported (JetStream v2 API supports pull consumers only)")
+	}
+	if c.DeliverGroup != "" {
+		return cfg, fmt.Errorf("deliver_group is not supported (JetStream v2 API supports pull consumers only)")
+	}
 
 	switch c.AckPolicy {
 	case "none":
@@ -152,6 +164,8 @@ func buildConsumerConfig(c config.Consumer) (jetstream.ConsumerConfig, error) {
 		cfg.AckPolicy = jetstream.AckAllPolicy
 	case "explicit", "":
 		cfg.AckPolicy = jetstream.AckExplicitPolicy
+	default:
+		return cfg, fmt.Errorf("unknown ack policy %q", c.AckPolicy)
 	}
 
 	switch c.DeliverPolicy {
@@ -175,6 +189,8 @@ func buildConsumerConfig(c config.Consumer) (jetstream.ConsumerConfig, error) {
 			}
 			cfg.OptStartTime = &t
 		}
+	default:
+		return cfg, fmt.Errorf("unknown deliver policy %q", c.DeliverPolicy)
 	}
 
 	switch c.ReplayPolicy {
@@ -182,6 +198,8 @@ func buildConsumerConfig(c config.Consumer) (jetstream.ConsumerConfig, error) {
 		cfg.ReplayPolicy = jetstream.ReplayInstantPolicy
 	case "original":
 		cfg.ReplayPolicy = jetstream.ReplayOriginalPolicy
+	default:
+		return cfg, fmt.Errorf("unknown replay policy %q", c.ReplayPolicy)
 	}
 
 	if c.AckWait != "" {
