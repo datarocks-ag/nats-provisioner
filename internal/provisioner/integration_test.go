@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
@@ -196,7 +197,7 @@ streams:
 		t.Fatal(err)
 	}
 
-	msg, err := consumer.Next()
+	msg, err := consumer.Next(jetstream.FetchMaxWait(5 * time.Second))
 	if err != nil {
 		t.Fatalf("next: %v", err)
 	}
