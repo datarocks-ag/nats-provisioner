@@ -106,7 +106,7 @@ func TestEnsureStreamCreate(t *testing.T) {
 	}
 
 	p := New(mock, &config.Config{})
-	if err := p.ensureStream(context.Background(), stream); err != nil {
+	if err := p.ensureStream(context.Background(), stream, "update"); err != nil {
 		t.Fatalf("ensureStream: %v", err)
 	}
 
@@ -139,7 +139,7 @@ func TestEnsureStreamUpdate(t *testing.T) {
 	}
 
 	p := New(mock, &config.Config{})
-	if err := p.ensureStream(context.Background(), stream); err != nil {
+	if err := p.ensureStream(context.Background(), stream, "update"); err != nil {
 		t.Fatalf("ensureStream: %v", err)
 	}
 
@@ -148,6 +148,36 @@ func TestEnsureStreamUpdate(t *testing.T) {
 	}
 	if mock.updateStreamCalls != 1 {
 		t.Errorf("expected 1 UpdateStream call, got %d", mock.updateStreamCalls)
+	}
+}
+
+func TestEnsureStreamCreateStrategySkipsExisting(t *testing.T) {
+	mock := newMockJetStream()
+	// Pre-populate existing stream
+	mock.streams["ORDERS"] = jetstream.StreamConfig{
+		Name:      "ORDERS",
+		Subjects:  []string{"orders.>"},
+		Storage:   jetstream.FileStorage,
+		Retention: jetstream.LimitsPolicy,
+	}
+
+	stream := config.Stream{
+		Name:     "ORDERS",
+		Subjects: []string{"orders.>", "orders-v2.>"},
+		Storage:  "file",
+	}
+
+	p := New(mock, &config.Config{})
+	if err := p.ensureStream(context.Background(), stream, "create"); err != nil {
+		t.Fatalf("ensureStream: %v", err)
+	}
+
+	// Should not have called UpdateStream or CreateStream
+	if mock.createStreamCalls != 0 {
+		t.Errorf("expected 0 CreateStream calls, got %d", mock.createStreamCalls)
+	}
+	if mock.updateStreamCalls != 0 {
+		t.Errorf("expected 0 UpdateStream calls, got %d", mock.updateStreamCalls)
 	}
 }
 

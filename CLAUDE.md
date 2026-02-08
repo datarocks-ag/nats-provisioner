@@ -56,4 +56,5 @@ Go 1.25 module using:
 - **YAML naming**: snake_case fields matching NATS server config conventions
 - **Duration parsing**: Supports Go durations + "Nd" day notation (e.g., "7d")
 - **Structured logging**: `log/slog` with JSON output
+- **Strategy**: `update` (default) or `create` (skip existing). Per-stream overrides global. Consumers always use `CreateOrUpdateConsumer` (atomic).
 - **Connection retry**: Exponential backoff (1s–30s, 15 retries, 5min timeout)
