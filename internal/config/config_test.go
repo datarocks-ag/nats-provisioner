@@ -620,3 +620,197 @@ streams:
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
+
+func TestLoadNonExistentFile(t *testing.T) {
+	_, err := Load("/nonexistent/path/config.yaml")
+	if err == nil {
+		t.Fatal("expected error for non-existent file")
+	}
+}
+
+func TestLoadMalformedYAML(t *testing.T) {
+	path := writeTempConfig(t, "not: valid: yaml: [")
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected error for malformed YAML")
+	}
+}
+
+func TestValidationMaxBytesTooLow(t *testing.T) {
+	yaml := `
+streams:
+  - name: "TEST"
+    subjects: ["test"]
+    max_bytes: -2
+`
+	path := writeTempConfig(t, yaml)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected validation error for max_bytes < -1")
+	}
+}
+
+func TestValidationMaxMsgSizeTooLow(t *testing.T) {
+	yaml := `
+streams:
+  - name: "TEST"
+    subjects: ["test"]
+    max_msg_size: -2
+`
+	path := writeTempConfig(t, yaml)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected validation error for max_msg_size < -1")
+	}
+}
+
+func TestValidationNegativeMaxAge(t *testing.T) {
+	yaml := `
+streams:
+  - name: "TEST"
+    subjects: ["test"]
+    max_age: "-1h"
+`
+	path := writeTempConfig(t, yaml)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected validation error for negative max_age")
+	}
+}
+
+func TestValidationNegativeDuplicateWindow(t *testing.T) {
+	yaml := `
+streams:
+  - name: "TEST"
+    subjects: ["test"]
+    duplicate_window: "-5m"
+`
+	path := writeTempConfig(t, yaml)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected validation error for negative duplicate_window")
+	}
+}
+
+func TestValidationInvalidDuplicateWindowDuration(t *testing.T) {
+	yaml := `
+streams:
+  - name: "TEST"
+    subjects: ["test"]
+    duplicate_window: "not-a-duration"
+`
+	path := writeTempConfig(t, yaml)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected validation error for invalid duplicate_window duration")
+	}
+}
+
+func TestValidationBackslashInStreamName(t *testing.T) {
+	yaml := `
+streams:
+  - name: "foo\\bar"
+    subjects: ["test"]
+`
+	path := writeTempConfig(t, yaml)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected validation error for backslash in stream name")
+	}
+}
+
+func TestValidationBackslashInConsumerName(t *testing.T) {
+	yaml := `
+streams:
+  - name: "TEST"
+    subjects: ["test"]
+    consumers:
+      - name: "foo\\bar"
+`
+	path := writeTempConfig(t, yaml)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected validation error for backslash in consumer name")
+	}
+}
+
+func TestValidationInvalidAckWaitDuration(t *testing.T) {
+	yaml := `
+streams:
+  - name: "TEST"
+    subjects: ["test"]
+    consumers:
+      - name: "c1"
+        ack_wait: "not-a-duration"
+`
+	path := writeTempConfig(t, yaml)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected validation error for invalid ack_wait duration")
+	}
+}
+
+func TestValidationNegativeAckWait(t *testing.T) {
+	yaml := `
+streams:
+  - name: "TEST"
+    subjects: ["test"]
+    consumers:
+      - name: "c1"
+        ack_wait: "-5s"
+`
+	path := writeTempConfig(t, yaml)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected validation error for negative ack_wait")
+	}
+}
+
+func TestValidationInvalidInactiveThresholdDuration(t *testing.T) {
+	yaml := `
+streams:
+  - name: "TEST"
+    subjects: ["test"]
+    consumers:
+      - name: "c1"
+        inactive_threshold: "not-a-duration"
+`
+	path := writeTempConfig(t, yaml)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected validation error for invalid inactive_threshold duration")
+	}
+}
+
+func TestValidationNegativeInactiveThreshold(t *testing.T) {
+	yaml := `
+streams:
+  - name: "TEST"
+    subjects: ["test"]
+    consumers:
+      - name: "c1"
+        inactive_threshold: "-10m"
+`
+	path := writeTempConfig(t, yaml)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected validation error for negative inactive_threshold")
+	}
+}
+
+func TestValidationInvalidOptStartTimeFormat(t *testing.T) {
+	yaml := `
+streams:
+  - name: "TEST"
+    subjects: ["test"]
+    consumers:
+      - name: "c1"
+        deliver_policy: "by_start_time"
+        opt_start_time: "not-rfc3339"
+`
+	path := writeTempConfig(t, yaml)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected validation error for invalid RFC3339 opt_start_time")
+	}
+}
