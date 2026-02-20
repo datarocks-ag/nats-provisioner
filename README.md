@@ -1,5 +1,8 @@
 # nats-provisioner
 
+[![CI](https://github.com/datarocks-ag/nats-provisioner/actions/workflows/ci.yaml/badge.svg)](https://github.com/datarocks-ag/nats-provisioner/actions/workflows/ci.yaml)
+![coverage](https://raw.githubusercontent.com/datarocks-ag/nats-provisioner/badges/.badges/develop/coverage.svg)
+
 A Go CLI tool that idempotently provisions NATS JetStream resources from a YAML config file. Designed as a Docker Compose init container.
 
 ## Features
