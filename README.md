@@ -3,7 +3,7 @@
 [![CI](https://github.com/datarocks-ag/nats-provisioner/actions/workflows/ci.yaml/badge.svg)](https://github.com/datarocks-ag/nats-provisioner/actions/workflows/ci.yaml)
 ![coverage](https://raw.githubusercontent.com/datarocks-ag/nats-provisioner/badges/.badges/develop/coverage.svg)
 
-A Go CLI tool that idempotently provisions NATS JetStream resources from a YAML config file. Designed as a Docker Compose init container.
+A Go CLI tool that idempotently provisions NATS JetStream resources from a YAML config file. Designed to run as a one-shot container — either as a Docker Compose init service (via `service_completed_successfully`) or as a Kubernetes `Job` / init container.
 
 ## Features
 
@@ -63,6 +63,8 @@ String values support `${VAR}` syntax. If the variable is set in the environment
 ```yaml
 name: "${STREAM_NAME}"    # replaced with env var value at load time
 ```
+
+Only the bare `${VAR}` form is recognized. Default-value syntax (`${VAR:-default}`) and dollar-escaping (`$$`) are not supported. Substitution applies to string fields only — numeric and boolean fields cannot be set via env vars.
 
 ## Provisioning Order
 

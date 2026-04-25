@@ -454,6 +454,51 @@ func TestValidationNullByteInStreamDescription(t *testing.T) {
 	}
 }
 
+func TestValidationNullByteInMaxAge(t *testing.T) {
+	yaml := "streams:\n  - name: \"TEST\"\n    subjects: [\"test\"]\n    max_age: \"7d\\x00\"\n"
+	path := writeTempConfig(t, yaml)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected validation error for null byte in max_age")
+	}
+}
+
+func TestValidationNullByteInDuplicateWindow(t *testing.T) {
+	yaml := "streams:\n  - name: \"TEST\"\n    subjects: [\"test\"]\n    duplicate_window: \"2m\\x00\"\n"
+	path := writeTempConfig(t, yaml)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected validation error for null byte in duplicate_window")
+	}
+}
+
+func TestValidationNullByteInAckWait(t *testing.T) {
+	yaml := "streams:\n  - name: \"TEST\"\n    subjects: [\"test\"]\n    consumers:\n      - name: \"c1\"\n        ack_wait: \"30s\\x00\"\n"
+	path := writeTempConfig(t, yaml)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected validation error for null byte in ack_wait")
+	}
+}
+
+func TestValidationNullByteInInactiveThreshold(t *testing.T) {
+	yaml := "streams:\n  - name: \"TEST\"\n    subjects: [\"test\"]\n    consumers:\n      - name: \"c1\"\n        inactive_threshold: \"5m\\x00\"\n"
+	path := writeTempConfig(t, yaml)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected validation error for null byte in inactive_threshold")
+	}
+}
+
+func TestValidationNullByteInOptStartTime(t *testing.T) {
+	yaml := "streams:\n  - name: \"TEST\"\n    subjects: [\"test\"]\n    consumers:\n      - name: \"c1\"\n        deliver_policy: \"by_start_time\"\n        opt_start_time: \"2024-01-01T00:00:00Z\\x00\"\n"
+	path := writeTempConfig(t, yaml)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected validation error for null byte in opt_start_time")
+	}
+}
+
 func TestParseDuration(t *testing.T) {
 	tests := []struct {
 		input string

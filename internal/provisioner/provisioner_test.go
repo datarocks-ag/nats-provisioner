@@ -93,7 +93,7 @@ func (m *mockJetStream) CreateOrUpdateConsumer(_ context.Context, stream string,
 	return nil, nil
 }
 
-func TestEnsureStreamCreate(t *testing.T) {
+func TestEnsureStreamCreatesWhenMissing(t *testing.T) {
 	mock := newMockJetStream()
 
 	maxMsgs := int64(-1)
@@ -889,6 +889,47 @@ func TestEnsureStreamUpdateError(t *testing.T) {
 }
 
 // --- ensureConsumer error path coverage ---
+
+func TestEnsureStreamUpdatePreservesUnsetMutableFields(t *testing.T) {
+	mock := newMockJetStream()
+	// Existing stream has non-default mutable fields the user is about to omit
+	mock.streams["KEEP"] = jetstream.StreamConfig{
+		Name:      "KEEP",
+		Subjects:  []string{"keep.>"},
+		Storage:   jetstream.FileStorage,
+		Retention: jetstream.LimitsPolicy,
+		Discard:   jetstream.DiscardNew,
+		MaxMsgs:   1000,
+		MaxBytes:  2048,
+		Replicas:  3,
+	}
+
+	// User submits a config that omits all those fields — we must not silently
+	// reset them to their Go zero values on the update path.
+	stream := config.Stream{
+		Name:     "KEEP",
+		Subjects: []string{"keep.>"},
+	}
+
+	p := New(mock, &config.Config{})
+	if err := p.ensureStream(context.Background(), stream, "update"); err != nil {
+		t.Fatalf("ensureStream: %v", err)
+	}
+
+	updated := mock.streams["KEEP"]
+	if updated.Discard != jetstream.DiscardNew {
+		t.Errorf("expected Discard preserved as DiscardNew, got %v", updated.Discard)
+	}
+	if updated.MaxMsgs != 1000 {
+		t.Errorf("expected MaxMsgs preserved as 1000, got %d", updated.MaxMsgs)
+	}
+	if updated.MaxBytes != 2048 {
+		t.Errorf("expected MaxBytes preserved as 2048, got %d", updated.MaxBytes)
+	}
+	if updated.Replicas != 3 {
+		t.Errorf("expected Replicas preserved as 3, got %d", updated.Replicas)
+	}
+}
 
 func TestEnsureConsumerBuildConfigError(t *testing.T) {
 	mock := newMockJetStream()

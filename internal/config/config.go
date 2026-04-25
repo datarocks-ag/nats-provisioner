@@ -287,6 +287,9 @@ func validate(cfg *Config) error {
 		}
 
 		if s.MaxAge != "" {
+			if containsNullByte(s.MaxAge) {
+				return fmt.Errorf("%s.max_age: contains null byte", prefix)
+			}
 			d, err := ParseDuration(s.MaxAge)
 			if err != nil {
 				return fmt.Errorf("%s.max_age: invalid duration %q: %w", prefix, s.MaxAge, err)
@@ -296,6 +299,9 @@ func validate(cfg *Config) error {
 			}
 		}
 		if s.DuplicateWindow != "" {
+			if containsNullByte(s.DuplicateWindow) {
+				return fmt.Errorf("%s.duplicate_window: contains null byte", prefix)
+			}
 			d, err := ParseDuration(s.DuplicateWindow)
 			if err != nil {
 				return fmt.Errorf("%s.duplicate_window: invalid duration %q: %w", prefix, s.DuplicateWindow, err)
@@ -364,6 +370,9 @@ func validateConsumers(streamPrefix string, consumers []Consumer) error {
 		}
 
 		if c.AckWait != "" {
+			if containsNullByte(c.AckWait) {
+				return fmt.Errorf("%s.ack_wait: contains null byte", prefix)
+			}
 			d, err := ParseDuration(c.AckWait)
 			if err != nil {
 				return fmt.Errorf("%s.ack_wait: invalid duration %q: %w", prefix, c.AckWait, err)
@@ -373,6 +382,9 @@ func validateConsumers(streamPrefix string, consumers []Consumer) error {
 			}
 		}
 		if c.InactiveThreshold != "" {
+			if containsNullByte(c.InactiveThreshold) {
+				return fmt.Errorf("%s.inactive_threshold: contains null byte", prefix)
+			}
 			d, err := ParseDuration(c.InactiveThreshold)
 			if err != nil {
 				return fmt.Errorf("%s.inactive_threshold: invalid duration %q: %w", prefix, c.InactiveThreshold, err)
@@ -388,6 +400,9 @@ func validateConsumers(streamPrefix string, consumers []Consumer) error {
 		if c.DeliverPolicy == "by_start_time" {
 			if c.OptStartTime == "" {
 				return fmt.Errorf("%s: deliver_policy 'by_start_time' requires opt_start_time", prefix)
+			}
+			if containsNullByte(c.OptStartTime) {
+				return fmt.Errorf("%s.opt_start_time: contains null byte", prefix)
 			}
 			if _, err := time.Parse(time.RFC3339, c.OptStartTime); err != nil {
 				return fmt.Errorf("%s.opt_start_time: invalid RFC3339 format %q: %w", prefix, c.OptStartTime, err)
