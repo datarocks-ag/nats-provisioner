@@ -27,13 +27,13 @@ type mockJetStream struct {
 	streams   map[string]jetstream.StreamConfig
 	consumers map[string]map[string]jetstream.ConsumerConfig
 
-	createStreamCalls         int
-	updateStreamCalls         int
+	createStreamCalls           int
+	updateStreamCalls           int
 	createOrUpdateConsumerCalls int
 
-	createStreamErr         error
-	updateStreamErr         error
-	streamErr               error
+	createStreamErr           error
+	updateStreamErr           error
+	streamErr                 error
 	createOrUpdateConsumerErr error
 }
 
