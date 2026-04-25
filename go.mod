@@ -5,7 +5,7 @@ go 1.25.7
 require (
 	github.com/nats-io/nats.go v1.51.0
 	github.com/testcontainers/testcontainers-go v0.42.0
-	github.com/testcontainers/testcontainers-go/modules/nats v0.40.0
+	github.com/testcontainers/testcontainers-go/modules/nats v0.42.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 

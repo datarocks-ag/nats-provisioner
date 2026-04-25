@@ -478,8 +478,8 @@ github.com/tenntenn/text/transform v0.0.0-20200319021203-7eef512accb3 h1:f+jULpR
 github.com/tenntenn/text/transform v0.0.0-20200319021203-7eef512accb3/go.mod h1:ON8b8w4BN/kE1EOhwT0o+d62W65a6aPw1nouo9LMgyY=
 github.com/testcontainers/testcontainers-go v0.42.0 h1:He3IhTzTZOygSXLJPMX7n44XtK+qhjat1nI9cneBbUY=
 github.com/testcontainers/testcontainers-go v0.42.0/go.mod h1:vZjdY1YmUA1qEForxOIOazfsrdyORJAbhi0bp8plN30=
-github.com/testcontainers/testcontainers-go/modules/nats v0.40.0 h1:IfMgeVI7Mg7CIu0R9N0c85XYMjai7e4OCCmHvkmG6Hg=
-github.com/testcontainers/testcontainers-go/modules/nats v0.40.0/go.mod h1:HpKiTohLxK5QGdCkF0W57nEUDzOR5aZsazH1uo8nqso=
+github.com/testcontainers/testcontainers-go/modules/nats v0.42.0 h1:WQR0+1r4GkM5QgOBoLxlP41empovt5PxtaiDpC0G7ow=
+github.com/testcontainers/testcontainers-go/modules/nats v0.42.0/go.mod h1:ZAI9iisjDNJmcRcycQFKSLpiBN9u2g1v9AJRq1afriE=
 github.com/tetafro/godot v1.5.6 h1:IEkrFCwXaYHlOn4mGzGS3F3dkP6m9t0jpwqBFPIkKiA=
 github.com/tetafro/godot v1.5.6/go.mod h1:eOkMrVQurDui411nBY2FA05EYH01r14LuWY/NrVDVcU=
 github.com/timakin/bodyclose v0.0.0-20260129054331-73d1f95b84b4 h1:SiHe5XLTn9sFWJ5pBwJ5FN/4j34q9ZlOAD//kMoMYp0=
