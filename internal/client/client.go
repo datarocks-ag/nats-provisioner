@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"math"
@@ -12,7 +13,7 @@ import (
 )
 
 const (
-	maxRetries   = 15
+	maxAttempts  = 16
 	initialDelay = 1 * time.Second
 	maxDelay     = 30 * time.Second
 	totalTimeout = 5 * time.Minute
@@ -20,8 +21,8 @@ const (
 
 // Connect establishes a NATS connection with exponential backoff retry
 // and returns a JetStream context and the underlying connection.
-func Connect(ctx context.Context, url, user, password, token string) (jetstream.JetStream, *nats.Conn, error) {
-	ctx, cancel := context.WithTimeout(ctx, totalTimeout)
+func Connect(parentCtx context.Context, url, user, password, token string) (jetstream.JetStream, *nats.Conn, error) {
+	ctx, cancel := context.WithTimeout(parentCtx, totalTimeout)
 	defer cancel()
 
 	var opts []nats.Option
@@ -32,7 +33,15 @@ func Connect(ctx context.Context, url, user, password, token string) (jetstream.
 		opts = append(opts, nats.Token(token))
 	}
 
-	for attempt := 0; attempt <= maxRetries; attempt++ {
+	contextErr := func() error {
+		if errors.Is(parentCtx.Err(), context.Canceled) {
+			return fmt.Errorf("connection canceled: %w", parentCtx.Err())
+		}
+		return fmt.Errorf("connection timeout after %s: %w", totalTimeout, ctx.Err())
+	}
+
+	var lastErr error
+	for attempt := 1; attempt <= maxAttempts; attempt++ {
 		nc, err := nats.Connect(url, opts...)
 		if err == nil {
 			js, jsErr := jetstream.New(nc)
@@ -44,19 +53,24 @@ func Connect(ctx context.Context, url, user, password, token string) (jetstream.
 			slog.Info("Connected to NATS", "url", url)
 			return js, nc, nil
 		}
+		lastErr = err
 
 		if ctx.Err() != nil {
-			return nil, nil, fmt.Errorf("connection timeout after %s: %w", totalTimeout, ctx.Err())
+			return nil, nil, contextErr()
 		}
 
-		delay := time.Duration(float64(initialDelay) * math.Pow(2, float64(attempt)))
+		if attempt == maxAttempts {
+			break
+		}
+
+		delay := time.Duration(float64(initialDelay) * math.Pow(2, float64(attempt-1)))
 		if delay > maxDelay {
 			delay = maxDelay
 		}
 
 		slog.Warn("NATS not ready, retrying",
-			"attempt", attempt+1,
-			"max_retries", maxRetries,
+			"attempt", attempt,
+			"max_attempts", maxAttempts,
 			"delay", delay,
 			"error", err,
 		)
@@ -64,9 +78,9 @@ func Connect(ctx context.Context, url, user, password, token string) (jetstream.
 		select {
 		case <-time.After(delay):
 		case <-ctx.Done():
-			return nil, nil, fmt.Errorf("connection timeout: %w", ctx.Err())
+			return nil, nil, contextErr()
 		}
 	}
 
-	return nil, nil, fmt.Errorf("failed to connect after %d retries", maxRetries+1)
+	return nil, nil, fmt.Errorf("failed to connect after %d attempts: %w", maxAttempts, lastErr)
 }

@@ -11,7 +11,7 @@ import (
 )
 
 func (p *Provisioner) ensureStream(ctx context.Context, stream config.Stream, strategy string) error {
-	cfg, err := buildStreamConfig(stream)
+	desired, err := buildStreamConfig(stream)
 	if err != nil {
 		return err
 	}
@@ -23,7 +23,7 @@ func (p *Provisioner) ensureStream(ctx context.Context, stream config.Stream, st
 		}
 
 		slog.Info("Creating stream", "stream", stream.Name)
-		_, err = p.js.CreateStream(ctx, cfg)
+		_, err = p.js.CreateStream(ctx, desired)
 		return err
 	}
 
@@ -32,45 +32,82 @@ func (p *Provisioner) ensureStream(ctx context.Context, stream config.Stream, st
 		return nil
 	}
 
-	// Stream exists — check immutable fields, log warnings, and carry forward existing values
-	info := existing.CachedInfo()
-	if info.Config.Storage != cfg.Storage {
-		slog.Warn("Stream storage type mismatch (immutable, cannot be changed)",
-			"stream", stream.Name,
-			"current", info.Config.Storage,
-			"desired", cfg.Storage,
-		)
-	}
-	cfg.Storage = info.Config.Storage
-
-	if info.Config.Retention != cfg.Retention {
-		slog.Warn("Stream retention policy mismatch (immutable, cannot be changed)",
-			"stream", stream.Name,
-			"current", info.Config.Retention,
-			"desired", cfg.Retention,
-		)
-	}
-	cfg.Retention = info.Config.Retention
-
-	if stream.DenyDelete != nil && info.Config.DenyDelete != cfg.DenyDelete {
-		slog.Warn("Stream deny_delete mismatch (immutable, cannot be changed)",
-			"stream", stream.Name,
-			"current", info.Config.DenyDelete,
-			"desired", cfg.DenyDelete,
-		)
-	}
-	cfg.DenyDelete = info.Config.DenyDelete
-
-	if stream.DenyPurge != nil && info.Config.DenyPurge != cfg.DenyPurge {
-		slog.Warn("Stream deny_purge mismatch (immutable, cannot be changed)",
-			"stream", stream.Name,
-			"current", info.Config.DenyPurge,
-			"desired", cfg.DenyPurge,
-		)
-	}
-	cfg.DenyPurge = info.Config.DenyPurge
+	cfg := mergeStreamUpdate(existing.CachedInfo().Config, desired, stream)
 
 	slog.Info("Updating stream", "stream", stream.Name)
 	_, err = p.js.UpdateStream(ctx, cfg)
 	return err
+}
+
+// mergeStreamUpdate returns the StreamConfig to send to UpdateStream.
+//
+// It starts from the broker's current state and overlays only fields the
+// user explicitly set in YAML, so that omitted fields are not silently
+// reset to their Go zero values. Immutable fields (storage, retention,
+// deny_delete, deny_purge) are never overwritten — if the user explicitly
+// requested a different value, a warning is logged.
+func mergeStreamUpdate(existing, desired jetstream.StreamConfig, s config.Stream) jetstream.StreamConfig {
+	cfg := existing
+	cfg.Name = desired.Name
+	cfg.Subjects = desired.Subjects
+
+	if s.Description != "" {
+		cfg.Description = desired.Description
+	}
+
+	if s.Storage != "" && existing.Storage != desired.Storage {
+		slog.Warn("Stream storage type mismatch (immutable, cannot be changed)",
+			"stream", s.Name,
+			"current", existing.Storage,
+			"desired", desired.Storage,
+		)
+	}
+	if s.Retention != "" && existing.Retention != desired.Retention {
+		slog.Warn("Stream retention policy mismatch (immutable, cannot be changed)",
+			"stream", s.Name,
+			"current", existing.Retention,
+			"desired", desired.Retention,
+		)
+	}
+	if s.DenyDelete != nil && existing.DenyDelete != desired.DenyDelete {
+		slog.Warn("Stream deny_delete mismatch (immutable, cannot be changed)",
+			"stream", s.Name,
+			"current", existing.DenyDelete,
+			"desired", desired.DenyDelete,
+		)
+	}
+	if s.DenyPurge != nil && existing.DenyPurge != desired.DenyPurge {
+		slog.Warn("Stream deny_purge mismatch (immutable, cannot be changed)",
+			"stream", s.Name,
+			"current", existing.DenyPurge,
+			"desired", desired.DenyPurge,
+		)
+	}
+
+	if s.Discard != "" {
+		cfg.Discard = desired.Discard
+	}
+	if s.MaxMsgs != nil {
+		cfg.MaxMsgs = desired.MaxMsgs
+	}
+	if s.MaxBytes != nil {
+		cfg.MaxBytes = desired.MaxBytes
+	}
+	if s.MaxMsgSize != nil {
+		cfg.MaxMsgSize = desired.MaxMsgSize
+	}
+	if s.NumReplicas != nil {
+		cfg.Replicas = desired.Replicas
+	}
+	if s.MaxAge != "" {
+		cfg.MaxAge = desired.MaxAge
+	}
+	if s.DuplicateWindow != "" {
+		cfg.Duplicates = desired.Duplicates
+	}
+	if s.AllowRollup != nil {
+		cfg.AllowRollup = desired.AllowRollup
+	}
+
+	return cfg
 }

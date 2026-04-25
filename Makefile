@@ -27,4 +27,4 @@ docker:
 	docker build -t $(BINARY) .
 
 clean:
-	rm -f $(BINARY)
+	rm -f $(BINARY) cover.out coverage.out
