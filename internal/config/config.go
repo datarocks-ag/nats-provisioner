@@ -180,12 +180,12 @@ var validAckPolicy = map[string]bool{
 }
 
 var validDeliverPolicy = map[string]bool{
-	"all":              true,
-	"last":             true,
-	"new":              true,
+	"all":               true,
+	"last":              true,
+	"new":               true,
 	"by_start_sequence": true,
-	"by_start_time":    true,
-	"":                 true,
+	"by_start_time":     true,
+	"":                  true,
 }
 
 var validReplayPolicy = map[string]bool{
