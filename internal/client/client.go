@@ -34,8 +34,11 @@ func Connect(parentCtx context.Context, url, user, password, token string) (jets
 	}
 
 	contextErr := func() error {
-		if errors.Is(parentCtx.Err(), context.Canceled) {
-			return fmt.Errorf("connection canceled: %w", parentCtx.Err())
+		if err := parentCtx.Err(); err != nil {
+			if errors.Is(err, context.Canceled) {
+				return fmt.Errorf("connection canceled: %w", err)
+			}
+			return fmt.Errorf("connection deadline exceeded: %w", err)
 		}
 		return fmt.Errorf("connection timeout after %s: %w", totalTimeout, ctx.Err())
 	}
