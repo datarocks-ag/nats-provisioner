@@ -5,7 +5,7 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.1.0] - Unreleased
+## [1.1.0] - 2026-04-25
 
 Backwards-compatible bug fixes and a dependency refresh. The YAML schema is
 unchanged.
@@ -89,5 +89,5 @@ Initial release.
 - Multi-stage Dockerfile producing a `scratch`-based image, plus a
   `docker-compose.yaml` example.
 
-[1.1.0]: https://github.com/datarocks-ag/nats-provisioner/compare/v1.0.0...HEAD
+[1.1.0]: https://github.com/datarocks-ag/nats-provisioner/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/datarocks-ag/nats-provisioner/releases/tag/v1.0.0
