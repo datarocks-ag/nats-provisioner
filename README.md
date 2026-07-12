@@ -36,6 +36,11 @@ This starts NATS with JetStream and runs the provisioner with the example config
 
 All auth variables are optional (dev environments often have no auth).
 
+Credentials may also be embedded directly in `NATS_URL` (e.g.
+`nats://user:pass@host:4222`). Any userinfo in the URL is redacted from all log
+output, so credentials are never written to logs regardless of how they are
+supplied.
+
 ## Strategy
 
 Control whether existing streams are updated or skipped using the `strategy` field:

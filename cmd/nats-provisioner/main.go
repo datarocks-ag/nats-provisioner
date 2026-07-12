@@ -35,7 +35,7 @@ func main() {
 	}
 	slog.Info("Configuration loaded", "streams", len(cfg.Streams))
 
-	slog.Info("Connecting to NATS", "url", natsURL)
+	slog.Info("Connecting to NATS", "url", client.RedactURL(natsURL))
 	js, nc, err := client.Connect(ctx, natsURL, natsUser, natsPassword, natsToken)
 	if err != nil {
 		slog.Error("Failed to connect to NATS", "error", err)
