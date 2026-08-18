@@ -95,4 +95,16 @@ func TestRedactError(t *testing.T) {
 			t.Errorf("redactError with empty creds changed message: %q", got)
 		}
 	})
+
+	t.Run("masks single server url from a comma-separated list", func(t *testing.T) {
+		multiURL := "nats://admin:s3cr3t@host1:4222,nats://admin:s3cr3t@host2:4222"
+		err := errors.New(`nats: no servers available, last error: dial nats://admin:s3cr3t@host1:4222: refused`)
+		got := redactError(err, multiURL, password)
+		if strings.Contains(got, "s3cr3t") {
+			t.Errorf("redactError leaked password from multi-server list: %q", got)
+		}
+		if !strings.Contains(got, "nats://redacted@host1:4222") {
+			t.Errorf("redactError did not mask the attempted server url: %q", got)
+		}
+	})
 }

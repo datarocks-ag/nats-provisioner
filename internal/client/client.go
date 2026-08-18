@@ -50,13 +50,18 @@ func redactSingleURL(s string) string {
 	return s
 }
 
-// redactError returns err's message with any occurrence of the connection URL
+// redactError returns err's message with any occurrence of the connection URL(s)
 // (including embedded credentials) or the raw password masked. NATS dial errors
-// can embed the server URL verbatim, so the retry WARN must be redacted.
+// typically embed a single attempted server URL rather than the full
+// comma-separated list, so each entry is redacted individually.
 func redactError(err error, rawURL, password string) string {
 	msg := err.Error()
-	if rawURL != "" {
-		msg = strings.ReplaceAll(msg, rawURL, RedactURL(rawURL))
+	for _, entry := range strings.Split(rawURL, ",") {
+		entry = strings.TrimSpace(entry)
+		if entry == "" {
+			continue
+		}
+		msg = strings.ReplaceAll(msg, entry, redactSingleURL(entry))
 	}
 	if password != "" {
 		msg = strings.ReplaceAll(msg, password, "redacted")
@@ -130,5 +135,5 @@ func Connect(parentCtx context.Context, url, user, password, token string) (jets
 		}
 	}
 
-	return nil, nil, fmt.Errorf("failed to connect after %d attempts: %w", maxAttempts, lastErr)
+	return nil, nil, fmt.Errorf("failed to connect after %d attempts: %s", maxAttempts, redactError(lastErr, url, password))
 }
