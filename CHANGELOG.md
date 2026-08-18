@@ -5,6 +5,19 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Security
+
+- Connection URLs are now redacted before logging. Any credentials embedded in
+  `NATS_URL` (e.g. `nats://user:pass@host:4222`, a valid NATS form) were
+  previously written in plaintext to the "Connecting to NATS" / "Connected to
+  NATS" log lines and could also surface in the connection-retry `WARN` when a
+  dial error embedded the URL. A new `client.RedactURL` masks the userinfo of
+  each URL (comma-separated lists supported), and the retry `WARN` now passes
+  the error through `redactError`, which also masks any bare occurrence of the
+  password.
+
 ## [1.1.0] - 2026-04-25
 
 Backwards-compatible bug fixes and a dependency refresh. The YAML schema is
@@ -89,5 +102,6 @@ Initial release.
 - Multi-stage Dockerfile producing a `scratch`-based image, plus a
   `docker-compose.yaml` example.
 
+[Unreleased]: https://github.com/datarocks-ag/nats-provisioner/compare/v1.1.0...HEAD
 [1.1.0]: https://github.com/datarocks-ag/nats-provisioner/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/datarocks-ag/nats-provisioner/releases/tag/v1.0.0
