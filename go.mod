@@ -3,7 +3,7 @@ module nats-provisioner
 go 1.25.7
 
 require (
-	github.com/nats-io/nats.go v1.52.0
+	github.com/nats-io/nats.go v1.53.1
 	github.com/testcontainers/testcontainers-go v0.44.0
 	github.com/testcontainers/testcontainers-go/modules/nats v0.44.0
 	gopkg.in/yaml.v3 v3.0.1
