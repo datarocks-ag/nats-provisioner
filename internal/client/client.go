@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log/slog"
 	"math"
-	"net/url"
 	"strings"
 	"time"
 
@@ -23,8 +22,9 @@ const (
 
 // RedactURL returns a NATS URL (or comma-separated list of URLs) with any
 // embedded userinfo (user:password@host) replaced by "redacted", so credentials
-// are never written to logs. Entries whose credentials cannot be parsed cleanly
-// are masked wholesale as a safe fallback.
+// are never written to logs. Everything between the scheme and the last '@' of
+// each entry is masked, so unencoded '@', '/', '?' or '#' in a password cannot
+// leak.
 func RedactURL(raw string) string {
 	parts := strings.Split(raw, ",")
 	for i, p := range parts {
@@ -33,21 +33,36 @@ func RedactURL(raw string) string {
 	return strings.Join(parts, ",")
 }
 
+// redactSingleURL does not use url.Parse: it ends the userinfo at the first
+// '/', '?' or '#', which leaves the rest of an unencoded password in the path,
+// query or fragment. A NATS URL has no path, so its last '@' always ends the
+// credentials.
 func redactSingleURL(s string) string {
-	u, err := url.Parse(s)
-	if err != nil {
-		return "redacted"
+	at := strings.LastIndex(s, "@")
+	if at < 0 {
+		return s
 	}
-	if u.User != nil {
-		u.User = url.User("redacted")
-		return u.String()
+	start := 0
+	if i := strings.Index(s, "://"); i >= 0 && i < at && isScheme(s[:i]) {
+		start = i + len("://")
 	}
-	// Credentials with URL-special characters can leave an unparsed '@' in the
-	// authority; mask the whole entry rather than risk leaking them.
-	if strings.Contains(u.Host, "@") || (u.Host == "" && strings.Contains(s, "@")) {
-		return "redacted"
+	return s[:start] + "redacted" + s[at:]
+}
+
+// isScheme reports whether s is a URL scheme as defined in RFC 3986, section 3.1.
+func isScheme(s string) bool {
+	if s == "" {
+		return false
 	}
-	return s
+	for i, r := range s {
+		switch {
+		case r >= 'a' && r <= 'z', r >= 'A' && r <= 'Z':
+		case i > 0 && (r >= '0' && r <= '9' || r == '+' || r == '-' || r == '.'):
+		default:
+			return false
+		}
+	}
+	return true
 }
 
 // redactError returns err's message with any occurrence of the connection URL(s)
