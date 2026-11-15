@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-11-15
+
+Security and bug fixes. The YAML schema is unchanged. Upgrading from 1.1.0
+converts existing consumers to durable ones on the first run; they keep their
+acknowledged position.
+
 ### Security
 
 - Connection URLs are now redacted before logging. Any credentials embedded in
@@ -39,6 +45,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (authentication, Kubernetes Job, per-environment configs, stream limits,
   deletion protection, deduplication, replication, work queues, replay). The
   README keeps a quick start and links them all.
+- Dependencies:
+  - `github.com/nats-io/nats.go` `1.51.0` → `1.55.0`, with `nats-io/nkeys`
+    `0.4.15` → `0.4.17`, `klauspost/compress` `1.18.5` → `1.20.4`,
+    `golang.org/x/crypto` `0.50.0` → `0.59.0` and `golang.org/x/sys`
+    `0.43.0` → `0.50.0` in the binary.
+  - `github.com/testcontainers/testcontainers-go` and its `modules/nats`
+    `0.42.0` → `0.45.0` (tests only).
+  - Go `1.25.7` → `1.27.0`; the Docker build stage uses `golang:1.27-alpine`.
+- CI / tooling:
+  - `golangci-lint` `2.11.4` → `2.15.0`.
+  - Action version bumps: `actions/checkout` v6 → v7, `actions/setup-go`
+    v6 → v7, `codecov/codecov-action` v6 → v7.
+  - Dependabot groups Go module updates and GitHub Actions updates into
+    fewer pull requests.
 
 ## [1.1.0] - 2026-04-25
 
@@ -124,6 +144,7 @@ Initial release.
 - Multi-stage Dockerfile producing a `scratch`-based image, plus a
   `docker-compose.yaml` example.
 
-[Unreleased]: https://github.com/datarocks-ag/nats-provisioner/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/datarocks-ag/nats-provisioner/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/datarocks-ag/nats-provisioner/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/datarocks-ag/nats-provisioner/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/datarocks-ag/nats-provisioner/releases/tag/v1.0.0
