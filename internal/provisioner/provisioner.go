@@ -140,8 +140,11 @@ func buildStreamConfig(s config.Stream) (jetstream.StreamConfig, error) {
 
 // buildConsumerConfig converts a config.Consumer to a jetstream.ConsumerConfig.
 func buildConsumerConfig(c config.Consumer) (jetstream.ConsumerConfig, error) {
+	// Without Durable the server treats the consumer as ephemeral and deletes it
+	// once no client has used it for inactive_threshold (5s by default).
 	cfg := jetstream.ConsumerConfig{
-		Name: c.Name,
+		Name:    c.Name,
+		Durable: c.Name,
 	}
 
 	if c.Description != "" {

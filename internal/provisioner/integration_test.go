@@ -123,6 +123,40 @@ streams:
 	}
 }
 
+// The server deletes a consumer without a durable name after 5s of inactivity
+// when no inactive_threshold is set; a provisioned consumer must outlive that.
+func TestIntegrationConsumerSurvivesWithoutClients(t *testing.T) {
+	js, _, cleanup := setupNATS(t)
+	defer cleanup()
+
+	cfgPath := writeTestConfig(t, `
+streams:
+  - name: "ORDERS"
+    subjects: ["orders.>"]
+    consumers:
+      - name: "order-logger"
+`)
+	cfg, err := config.Load(cfgPath)
+	if err != nil {
+		t.Fatalf("failed to load config: %v", err)
+	}
+
+	ctx := context.Background()
+	if err := provisioner.New(js, cfg).Run(ctx); err != nil {
+		t.Fatalf("provisioning run failed: %v", err)
+	}
+
+	time.Sleep(8 * time.Second)
+
+	consumer, err := js.Consumer(ctx, "ORDERS", "order-logger")
+	if err != nil {
+		t.Fatalf("consumer gone after inactivity: %v", err)
+	}
+	if got := consumer.CachedInfo().Config.Durable; got != "order-logger" {
+		t.Errorf("expected durable name order-logger, got %q", got)
+	}
+}
+
 func TestIntegrationIdempotency(t *testing.T) {
 	js, _, cleanup := setupNATS(t)
 	defer cleanup()

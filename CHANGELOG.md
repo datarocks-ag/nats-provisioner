@@ -18,6 +18,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the error through `redactError`, which also masks any bare occurrence of the
   password.
 
+### Fixed
+
+- Consumers are now created as durable consumers. They were previously created
+  without a durable name, so NATS treated them as ephemeral and deleted them
+  after 5 seconds without a connected client, or after `inactive_threshold`
+  when set. Existing consumers are converted in place on the next run and keep
+  their acknowledged position. A durable consumer with `inactive_threshold`
+  set is still deleted after that period of inactivity.
+
 ## [1.1.0] - 2026-04-25
 
 Backwards-compatible bug fixes and a dependency refresh. The YAML schema is
