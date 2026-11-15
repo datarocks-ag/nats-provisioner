@@ -161,7 +161,7 @@ always fail when the consumer is provisioned. See [Consumers](configuration.md#c
 
 ## Durable consumers and inactivity
 
-From the next release on, every consumer the provisioner creates is **durable**: it has a durable
+From release 1.1.1 on, every consumer the provisioner creates is **durable**: it has a durable
 name equal to its `name`, and NATS keeps it, with its position, whether or not an application is
 connected. That's what you want for a consumer provisioned ahead of the applications that use it.
 
@@ -190,7 +190,7 @@ Release 1.1.0 and earlier created consumers **without** a durable name, so NATS 
 ephemeral: it deleted them about five seconds after the last application stopped using them (or
 after `inactive_threshold`, if set). The next run created them again, from scratch.
 
-After an upgrade to the next release, the first run converts each existing consumer to durable
+After an upgrade to 1.1.1, the first run converts each existing consumer to durable
 in place and keeps its position. The server keeps the ephemeral consumer's 5-second inactivity
 limit on that conversion, so the provisioner sends the consumer's config a second time in the
 same run to remove it. Ten seconds after the upgrade run, with no application connected, the
@@ -277,17 +277,17 @@ Logs are JSON lines on standard output, one per action. `LOG_LEVEL` accepts `deb
 What the provisioner does to keep credentials out of the logs depends on the release:
 
 - **`NATS_USER` / `NATS_PASSWORD` and `NATS_TOKEN`** are never written to the log by the
-  provisioner itself. From the next release on, a password that shows up in a connection error is
+  provisioner itself. From release 1.1.1 on, a password that shows up in a connection error is
   replaced by `redacted` as well. Error redaction doesn't cover the token.
 - **Credentials in `NATS_URL`** (`nats://<user>:<password>@<host>:4222`) are written **in plain
   text** by release 1.1.0, on the `Connecting to NATS` and `Connected to NATS` lines and possibly
-  in retry warnings. From the next release on, they are replaced by `redacted`:
+  in retry warnings. From release 1.1.1 on, they are replaced by `redacted`:
 
   ```json
   {"level":"INFO","msg":"Connecting to NATS","url":"nats://redacted@localhost:14402"}
   ```
 
-Until you run a release with URL redaction, pass credentials in `NATS_USER` / `NATS_PASSWORD` or
+If you still run 1.1.0, pass credentials in `NATS_USER` / `NATS_PASSWORD` or
 `NATS_TOKEN`, not in `NATS_URL`. [Authenticate to a secured NATS server](howto/authenticate-to-nats.md)
 shows each option.
 

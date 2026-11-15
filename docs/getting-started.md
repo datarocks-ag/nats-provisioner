@@ -15,10 +15,10 @@ Each step builds on the previous one, so keep the files you create.
 > **Versions:** this guide uses the image tag `latest`. All tags are listed under
 > [Deployment → Image tags](deployment.md#image-tags).
 >
-> Release 1.1.0 (the current `latest`) creates consumers as *ephemeral*: NATS deletes them about
-> five seconds after the run, because no application is attached yet. With 1.1.0 the
+> Use release 1.1.1 or later. Release 1.1.0 creates consumers as *ephemeral*: NATS deletes them
+> about five seconds after the run, because no application is attached yet. With 1.1.0 the
 > `nats consumer info` check in Step 1 and the read in Step 2 fail, because the consumer is
-> already gone. From the next release on, consumers are durable and every step works as shown.
+> already gone.
 > [Durable consumers and inactivity](concepts.md#durable-consumers-and-inactivity) explains the
 > difference.
 

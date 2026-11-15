@@ -273,12 +273,12 @@ v1.33.5 cluster, but its node could not schedule Pods, so the `kubectl get job` 
 
 ## Pitfalls
 
-- **With the `1.1` image, consumers disappear right after the Job.** Release 1.1.0 creates
+- **With the 1.1.0 image, consumers disappear right after the Job.** Release 1.1.0 creates
   consumers without a durable name, so NATS deletes each one about five seconds after the last
   client disconnects, which for a Job is right after it finishes, unless your application is
-  already consuming. Run with the `1.1` image against nats-server v2.12.15, the consumer was
+  already consuming. Run with the 1.1.0 image against nats-server v2.12.15, the consumer was
   gone seven seconds after a successful run (`nats consumer ls ORDERS` printed
-  `No Consumers defined`). From the next release, consumers are durable and stay.
+  `No Consumers defined`). From 1.1.1 on, consumers are durable and stay.
   [Durable consumers and inactivity](../concepts.md#durable-consumers-and-inactivity).
 - **The Job hangs in `Running` for five minutes, then fails.** The log shows repeated
   `NATS not ready, retrying` warnings. `nats: Authorization Violation` in the `error` field
@@ -293,7 +293,7 @@ v1.33.5 cluster, but its node could not schedule Pods, so the `kubectl get job` 
 - **The Job is gone and so are its logs.** `ttlSecondsAfterFinished` deletes the Job and its
   Pods. Ship logs to your log system, or increase the value while you set things up.
 - **`latest` in the image tag.** Without a pinned tag, nodes may run different versions
-  depending on what they cached. Pin `1.1` or an exact version like `1.1.0`.
+  depending on what they cached. Pin `1.1` or an exact version like `1.1.1`.
 - **No `NATS_URL` set.** The default is `nats://localhost:4222`, which inside a Pod is the Pod
   itself; the Job retries for five minutes and fails.
 

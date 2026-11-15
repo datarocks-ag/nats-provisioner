@@ -7,8 +7,7 @@ consumers in line with it on every run; it only creates and updates, it never de
 [configuration reference](configuration.md) lists every field.
 
 Log output on this page is trimmed to the relevant fields; real lines also carry `time`.
-Outputs were captured with nats-server v2.12.15 (`nats:2.12-alpine`) and a build of the
-current development branch.
+Outputs were captured with nats-server v2.12.15 (`nats:2.12-alpine`) and a pre-release build of 1.1.1.
 
 - [Configuration errors](#configuration-errors)
   - [Why is my name rejected with `contains invalid characters`?](#why-is-my-name-rejected-with-contains-invalid-characters)
@@ -356,8 +355,8 @@ billing
 ```
 
 Release 1.1.0 created all consumers as ephemeral, so NATS deleted them about 5 seconds after
-the last client disconnected, with or without `inactive_threshold`. The next release fixes this
-(see `[Unreleased]` in the changelog); its first run converts existing consumers to durable
+the last client disconnected, with or without `inactive_threshold`. Release 1.1.1 fixes this
+(see the changelog); its first run converts existing consumers to durable
 ones and keeps their position.
 
 Further reading: [Durable consumers and inactivity](concepts.md#durable-consumers-and-inactivity),
@@ -486,13 +485,13 @@ Further reading: [Replicate a stream across a cluster](howto/replicate-a-stream.
 
 ### Can credentials end up in logs?
 
-From the next release on, the provisioner masks the credentials it knows about; release 1.1.0
+From release 1.1.1 on, the provisioner masks the credentials it knows about; release 1.1.0
 logs credentials in `NATS_URL` in plain text.
 
-On the development branch, user and password in `NATS_URL` are replaced by `redacted` in every
+In 1.1.1, user and password in `NATS_URL` are replaced by `redacted` in every
 log line (`nats://redacted@<host>:4222`), and retry warnings also mask the value of
 `NATS_PASSWORD`. The tool never logs `NATS_TOKEN` itself, but error messages aren't checked for
-it. Until the fix is released, prefer `NATS_USER` and `NATS_PASSWORD` over credentials in the
+it. If you still run 1.1.0, prefer `NATS_USER` and `NATS_PASSWORD` over credentials in the
 URL.
 
 Further reading: [Logs and credentials](concepts.md#logs-and-credentials),
@@ -554,11 +553,11 @@ Further reading: [The provisioning order](concepts.md#the-provisioning-order)
 
 ### Which image tag should I use?
 
-A pinned release (`1.1.0`) or minor version (`1.1`) of `ghcr.io/datarocks-ag/nats-provisioner`.
+A pinned release (`1.1.1`) or minor version (`1.1`) of `ghcr.io/datarocks-ag/nats-provisioner`.
 
 Images are built only for releases. `latest` follows the newest release, and `sha-<short-sha>`
 names the commit. Tags have no `v` prefix, and there is no major-only tag such as `1`.
 Release 1.1.0 creates ephemeral consumers and logs credentials in `NATS_URL`; both are fixed
-in the next release (see [Why did my consumer disappear?](#why-did-my-consumer-disappear)).
+in 1.1.1 (see [Why did my consumer disappear?](#why-did-my-consumer-disappear)).
 
 Further reading: [Image tags](deployment.md#image-tags)

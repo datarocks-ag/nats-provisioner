@@ -13,7 +13,7 @@ Images are published to `ghcr.io/datarocks-ag/nats-provisioner` for `linux/amd64
 
 | Tag | Points to | Use it for |
 |---|---|---|
-| `1.1.0` | exactly that release | production: reproducible |
+| `1.1.1` | exactly that release | production: reproducible |
 | `1.1` | latest patch release of 1.1 | production: picks up fixes |
 | `latest` | latest release | trying things out |
 | `sha-<short-sha>` | the commit a release was built from | debugging |
@@ -26,8 +26,9 @@ to existing streams and consumers on the next deploy. With a pinned tag, you dec
 upgrade and can read the [changelog](../CHANGELOG.md) first.
 
 The documentation on the `develop` branch may describe changes that aren't released yet; the
-changelog lists them under *Unreleased*. Two of them matter for deployment and are **not** in
-1.1.0 (the current `latest` and `1.1`):
+changelog lists them under *Unreleased*.
+
+If you still run 1.1.0, upgrade to 1.1.1. Two of its fixes matter for deployment:
 
 - Consumers are created as durable. 1.1.0 creates them without a durable name, so NATS removes
   them shortly after their last client disconnects. See
@@ -190,8 +191,8 @@ has no settings for them.
 
 **Prefer `NATS_USER`/`NATS_PASSWORD` or `NATS_TOKEN` over credentials in the URL.** Release 1.1.0
 writes `NATS_URL` to the `Connecting to NATS` and `Connected to NATS` log lines as it is,
-credentials included. The next release replaces them with `redacted`
-(`nats://redacted@host:4222`); see *Unreleased* in the [changelog](../CHANGELOG.md).
+credentials included. Release 1.1.1 replaces them with `redacted`
+(`nats://redacted@host:4222`); see the [changelog](../CHANGELOG.md).
 
 A wrong password is retried like any other connection error, so the run fails only after about
 5 minutes. Each retry logs a warning with `nats: Authorization Violation`.
