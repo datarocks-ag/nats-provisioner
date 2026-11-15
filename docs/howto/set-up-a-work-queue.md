@@ -26,8 +26,8 @@ worker crashes halfway through. Once a job is done, there is no reason to keep i
   out unacknowledged at once, across all workers.
   [Consumers](../configuration.md#consumers).
 - **Durable consumers:** the provisioner creates every consumer as durable, so it stays on the
-  server while no worker is connected. This is a fix that ships with the next release; release
-  1.1.0 created consumers that NATS deleted 5 seconds after the last client left.
+  server while no worker is connected. This is a fix in release 1.1.1;
+  release 1.1.0 created consumers that NATS deleted 5 seconds after the last client left.
   [Durable consumers and inactivity](../concepts.md#durable-consumers-and-inactivity).
 
 ## Steps

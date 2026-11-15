@@ -134,7 +134,7 @@ from the YAML goes back to its default** (verified: removing `max_deliver: 5` an
 Sources: struct `Consumer` in [internal/config/config.go](../internal/config/config.go);
 `buildConsumerConfig` in [internal/provisioner/provisioner.go](../internal/provisioner/provisioner.go).
 
-> Consumers are created as durable from the next release on (*Unreleased* in the
+> Consumers are created as durable from release 1.1.1 on (see the
 > [changelog](../CHANGELOG.md)). Release 1.1.0 created them without a durable name, so NATS
 > removed them shortly after their last client disconnected.
 

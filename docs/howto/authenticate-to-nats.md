@@ -55,9 +55,9 @@ belong and what ends up in the logs.
 Prefer `NATS_USER` + `NATS_PASSWORD` (or `NATS_TOKEN`) over credentials in `NATS_URL`, for
 two reasons:
 
-- **Release 1.1.0 logs the URL as it is.** With credentials in `NATS_URL`, the current image
-  (`1.1`, `1.1.0`, `latest`) writes them in plain text to the `Connecting to NATS` and
-  `Connected to NATS` lines. Captured with `ghcr.io/datarocks-ag/nats-provisioner:1.1`:
+- **Release 1.1.0 logs the URL as it is.** With credentials in `NATS_URL`, the 1.1.0 image
+  writes them in plain text to the `Connecting to NATS` and `Connected to NATS` lines.
+  Captured with `ghcr.io/datarocks-ag/nats-provisioner:1.1.0`:
 
   ```
   {"level":"INFO","msg":"Starting nats-provisioner","version":"v1.1.0"}
@@ -65,12 +65,12 @@ two reasons:
   {"level":"INFO","msg":"Connected to NATS","url":"nats://u:p@localhost:4222"}
   ```
 
-  The next release replaces the credentials with `redacted`
+  Release 1.1.1 replaces the credentials with `redacted`
   ([Logs and credentials](../concepts.md#logs-and-credentials)). The variables never appear
   in the log in either version.
 - **Special characters break the URL.** A password containing `@`, `/`, `:` or `%` must be
   percent-encoded in a URL (`p@ss/w:rd` becomes `p%40ss%2Fw%3Ard`). Unencoded, the
-  provisioner doesn't connect. Release 1.1.0 logs the whole password, and the next release
+  provisioner doesn't connect. Release 1.1.0 logs the whole password, and release 1.1.1
   masks it (`"url":"nats://redacted@localhost:4222"`). In `NATS_PASSWORD` the same password
   works as it is.
 
@@ -113,7 +113,7 @@ full manifest is in [Run the provisioner as a Kubernetes Job](run-as-a-kubernete
 
 Run it as usual. Nothing in `config.yaml` changes. The examples below were captured against
 nats-server v2.12.15 started with `--jetstream --user u --pass p`, using the standalone binary
-from the next release (so URL credentials show as `redacted`). Log lines are trimmed; real
+from a pre-release build of 1.1.1 (so URL credentials show as `redacted`). Log lines are trimmed; real
 lines also carry `time`.
 
 ```console
@@ -177,14 +177,14 @@ nats: error: setup failed: nats: Authorization Violation
   `authentication error - User "u"`.
 - **Credentials in `NATS_URL` silently override the variables.** If a URL with old
   credentials is left in a Compose file or a ConfigMap, updating `NATS_PASSWORD` changes
-  nothing. With 1.1.0 you can see such credentials in the `Connecting to NATS` line; from the
-  next release you see `redacted@` in the URL.
+  nothing. With 1.1.0 you can see such credentials in the `Connecting to NATS` line; from
+  1.1.1 on you see `redacted@` in the URL.
 - **`NATS_USER` without `NATS_PASSWORD`** (or the other way round) sends no credentials at
   all, and the log shows only `Authorization Violation`. An empty variable counts as unset, so
   `NATS_PASSWORD=` from a missing secret has the same effect.
 - **User/password set against a token server.** User/password wins over `NATS_TOKEN`; a
   leftover `NATS_USER`/`NATS_PASSWORD` pair makes a token login fail.
-- **What the logs hide, and what they don't.** From the next release, URL credentials are
+- **What the logs hide, and what they don't.** From release 1.1.1 on, URL credentials are
   replaced with `redacted`, and the retry warnings also mask the value of `NATS_PASSWORD`.
   The token is never written by the provisioner itself, but error texts are not scanned for
   it. Release 1.1.0 masks nothing.

@@ -112,7 +112,7 @@ config file itself stays the same in every namespace. The Job is described in
 ### 3. Run it once per environment
 
 Each run creates the streams for its own environment. Captured against a throwaway
-nats-server v2.12.15, with the standalone binary (a build from the next release):
+nats-server v2.12.15, with the standalone binary (a pre-release build of 1.1.1):
 
 ```console
 $ ENVIRONMENT=staging ORDERS_MAX_AGE=1d ORDERS_ACK_WAIT=30s \
@@ -168,7 +168,7 @@ $ nats -s nats://localhost:4222 consumer info ORDERS_prod order-processor
 …
 ```
 
-This run used a build from the next release, where consumers are durable. With release 1.1.0
+This run used a pre-release build of 1.1.1, where consumers are durable. With release 1.1.0
 NATS deletes the consumer a few seconds after the run, so `consumer info` finds nothing
 unless an application is connected
 ([Durable consumers and inactivity](../concepts.md#durable-consumers-and-inactivity)).
