@@ -157,6 +157,47 @@ streams:
 	}
 }
 
+// Release 1.1.0 created consumers without a durable name, so the server gave
+// them its 5s ephemeral inactive threshold. One run of the provisioner must
+// turn such a consumer into a durable one without that threshold.
+func TestIntegrationEphemeralConsumerUpgradedInOneRun(t *testing.T) {
+	js, _, cleanup := setupNATS(t)
+	defer cleanup()
+
+	ctx := context.Background()
+	if _, err := js.CreateStream(ctx, jetstream.StreamConfig{Name: "ORDERS", Subjects: []string{"orders.>"}}); err != nil {
+		t.Fatalf("creating stream: %v", err)
+	}
+	if _, err := js.CreateOrUpdateConsumer(ctx, "ORDERS", jetstream.ConsumerConfig{Name: "order-logger"}); err != nil {
+		t.Fatalf("creating ephemeral consumer: %v", err)
+	}
+
+	cfgPath := writeTestConfig(t, `
+streams:
+  - name: "ORDERS"
+    subjects: ["orders.>"]
+    consumers:
+      - name: "order-logger"
+`)
+	cfg, err := config.Load(cfgPath)
+	if err != nil {
+		t.Fatalf("failed to load config: %v", err)
+	}
+	if err := provisioner.New(js, cfg).Run(ctx); err != nil {
+		t.Fatalf("provisioning run failed: %v", err)
+	}
+
+	time.Sleep(8 * time.Second)
+
+	consumer, err := js.Consumer(ctx, "ORDERS", "order-logger")
+	if err != nil {
+		t.Fatalf("consumer gone after inactivity: %v", err)
+	}
+	if got := consumer.CachedInfo().Config.InactiveThreshold; got != 0 {
+		t.Errorf("expected no inactive threshold, got %s", got)
+	}
+}
+
 func TestIntegrationIdempotency(t *testing.T) {
 	js, _, cleanup := setupNATS(t)
 	defer cleanup()
