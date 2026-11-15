@@ -1,7 +1,7 @@
 services:
   nats:
     image: nats:2.12-alpine
-    command: ["--jetstream"]
+    command: ["--jetstream", "-sd", "/data"]
     ports: ["4222:4222", "8222:8222"]
     volumes: [natsdata:/data]
     healthcheck:
