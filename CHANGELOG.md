@@ -26,6 +26,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   when set. Existing consumers are converted in place on the next run and keep
   their acknowledged position. A durable consumer with `inactive_threshold`
   set is still deleted after that period of inactivity.
+- The example `docker-compose.yaml` now starts NATS with `-sd /data`. The
+  `natsdata` volume was mounted but unused, so streams and messages were lost
+  whenever the NATS container was recreated.
 
 ### Changed
 
