@@ -33,6 +33,36 @@ func TestRedactURL(t *testing.T) {
 			want: "nats://redacted@nats:4222",
 		},
 		{
+			name: "password with '/' and '@' is masked up to the host",
+			in:   "nats://admin:p@ss/w:rd@nats:4222",
+			want: "nats://redacted@nats:4222",
+		},
+		{
+			name: "user with '/' is masked up to the host",
+			in:   "nats://to/k3n@nats:4222",
+			want: "nats://redacted@nats:4222",
+		},
+		{
+			name: "user with '#' is masked up to the host",
+			in:   "nats://to#k3n@nats:4222",
+			want: "nats://redacted@nats:4222",
+		},
+		{
+			name: "user with '?' is masked up to the host",
+			in:   "nats://to?k3n@nats:4222",
+			want: "nats://redacted@nats:4222",
+		},
+		{
+			name: "credentials without scheme are masked",
+			in:   "admin:s3cr3t@nats:4222",
+			want: "redacted@nats:4222",
+		},
+		{
+			name: "'://' inside credentials without scheme is not taken as a scheme",
+			in:   "admin:s3cr3t://k3n@nats:4222",
+			want: "redacted@nats:4222",
+		},
+		{
 			name: "comma-separated list redacts each entry",
 			in:   "nats://a:b@host1:4222,nats://host2:4222",
 			want: "nats://redacted@host1:4222,nats://host2:4222",
@@ -50,7 +80,7 @@ func TestRedactURL(t *testing.T) {
 			if got != tt.want {
 				t.Errorf("RedactURL(%q) = %q, want %q", tt.in, got, tt.want)
 			}
-			if strings.Contains(got, "s3cr3t") || strings.Contains(got, "p@ss:w0rd") {
+			if strings.Contains(got, "s3cr3t") || strings.Contains(got, "ss") || strings.Contains(got, "k3n") {
 				t.Errorf("RedactURL(%q) leaked a password: %q", tt.in, got)
 			}
 		})

@@ -16,7 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   dial error embedded the URL. A new `client.RedactURL` masks the userinfo of
   each URL (comma-separated lists supported), and the retry `WARN` now passes
   the error through `redactError`, which also masks any bare occurrence of the
-  password.
+  password. Everything between the scheme and the last `@` of each URL is
+  masked, so a password or token containing an unencoded `@`, `/`, `?` or `#`
+  is masked completely as well.
 
 ### Fixed
 

@@ -70,9 +70,9 @@ two reasons:
   in the log in either version.
 - **Special characters break the URL.** A password containing `@`, `/`, `:` or `%` must be
   percent-encoded in a URL (`p@ss/w:rd` becomes `p%40ss%2Fw%3Ard`). Unencoded, the
-  provisioner doesn't connect, and even with the next release's redaction part of the password
-  shows up in the log (`"url":"nats://redacted@ss/w:rd@localhost:4222"`). In `NATS_PASSWORD`
-  the same password works as it is.
+  provisioner doesn't connect. Release 1.1.0 logs the whole password, and the next release
+  masks it (`"url":"nats://redacted@localhost:4222"`). In `NATS_PASSWORD` the same password
+  works as it is.
 
 Set both halves of a user/password pair. `NATS_USER` alone is ignored without a warning, and
 the server sees an anonymous client.
