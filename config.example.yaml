@@ -31,7 +31,6 @@ streams:
         deliver_policy: "all"
         replay_policy: "instant"
         max_ack_pending: 1000
-        inactive_threshold: "5m"
 
       - name: "order-logger"
         description: "Logs all order events"
