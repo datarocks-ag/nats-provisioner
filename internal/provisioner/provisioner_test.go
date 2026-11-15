@@ -90,7 +90,17 @@ func (m *mockJetStream) CreateOrUpdateConsumer(_ context.Context, stream string,
 		m.consumers[stream] = make(map[string]jetstream.ConsumerConfig)
 	}
 	m.consumers[stream][cfg.Name] = cfg
-	return nil, nil
+	return &mockConsumer{info: jetstream.ConsumerInfo{Config: cfg}}, nil
+}
+
+// mockConsumer implements jetstream.Consumer for testing.
+type mockConsumer struct {
+	jetstream.Consumer
+	info jetstream.ConsumerInfo
+}
+
+func (m *mockConsumer) CachedInfo() *jetstream.ConsumerInfo {
+	return &m.info
 }
 
 func TestEnsureStreamCreatesWhenMissing(t *testing.T) {
