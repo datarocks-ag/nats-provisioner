@@ -27,6 +27,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   their acknowledged position. A durable consumer with `inactive_threshold`
   set is still deleted after that period of inactivity.
 
+### Changed
+
+- Documentation moved from the README into `docs/`: getting started, how it
+  works, configuration reference, deployment, an FAQ, and nine how-to guides
+  (authentication, Kubernetes Job, per-environment configs, stream limits,
+  deletion protection, deduplication, replication, work queues, replay). The
+  README keeps a quick start and links them all.
+
 ## [1.1.0] - 2026-04-25
 
 Backwards-compatible bug fixes and a dependency refresh. The YAML schema is
